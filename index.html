@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>JavaScript Online Compiler</title>
+
+    <style>
+        /* ===============================
+       THEME VARIABLES
+       =============================== */
+
+        :root[data-theme="dark"] {
+            --bg-dark: #0f172a;
+            --bg-light: #020617;
+            --panel: #020617;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --error: #ef4444;
+        }
+
+        :root[data-theme="light"] {
+            --bg-dark: #f8fafc;
+            --bg-light: #ffffff;
+            --panel: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --muted: #475569;
+            --accent: #16a34a;
+            --error: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: var(--bg-dark);
+        }
+
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        /* ===============================
+       APP FADE (NO FLICKER FIX)
+       =============================== */
+
+
+        #app {
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-dark);
+            transition: opacity 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+
+        /* ===============================
+       HEADER
+       =============================== */
+
+        header {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ===============================
+       MODE TOGGLE (LABELLED)
+       =============================== */
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .mode-toggle input {
+            display: none;
+        }
+
+        .switch {
+            width: 42px;
+            height: 22px;
+            background: var(--border);
+            border-radius: 999px;
+            position: relative;
+            transition: background-color 0.25s ease;
+        }
+
+        .switch::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            background: var(--bg-light);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.25s ease, background-color 0.25s ease;
+        }
+
+        .mode-toggle input:checked+.switch {
+            background: var(--accent);
+        }
+
+        .mode-toggle input:checked+.switch::after {
+            transform: translateX(20px);
+        }
+
+        /* ===============================
+       BUTTONS
+       =============================== */
+
+        button {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        button.primary {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        button:hover {
+            background: var(--bg-dark);
+        }
+
+        /* ===============================
+       MAIN
+       =============================== */
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .panel {
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 8px 12px;
+            font-size: 13px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 14px;
+            resize: none;
+            outline: none;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        #output {
+            padding: 14px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .error {
+            color: var(--error);
+        }
+
+        /* ===============================
+       FOOTER
+       =============================== */
+
+        footer {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 12px;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+            background: var(--bg-light);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <header>
+            <h1>JavaScript Online Compiler</h1>
+
+            <div class="actions">
+                <label class="mode-toggle">
+                    <span id="modeLabel">Dark mode</span>
+                    <input type="checkbox" id="themeToggle" />
+                    <span class="switch"></span>
+                </label>
+
+                <button onclick="clearOutput()">Clear</button>
+                <button class="primary" onclick="runCode()">Run ▶</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="panel">
+                <div class="panel-header">Editor</div>
+                <textarea id="code">
+// Example
+console.log("Hello World");
+
+let x = 10;
+let y = 20;
+console.log("Sum:", x + y);
+    </textarea>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">Output</div>
+                <div id="output"></div>
+            </div>
+        </main>
+
+        <footer>
+            Powered by Browser JavaScript Engine
+        </footer>
+
+    </div>
+
+    <script>
+        /* ===============================
+           CODE EXECUTION
+           =============================== */
+
+        function runCode() {
+            const code = document.getElementById("code").value;
+            const output = document.getElementById("output");
+
+            output.textContent = "";
+
+            const originalLog = console.log;
+            console.log = (...args) => {
+                output.textContent += args.join(" ") + "\n";
+            };
+
+            try {
+                new Function(code)();
+            } catch (err) {
+                output.innerHTML += `<span class="error">Error: ${err.message}</span>`;
+            }
+
+            console.log = originalLog;
+        }
+
+        function clearOutput() {
+            document.getElementById("output").textContent = "";
+        }
+
+        /* ===============================
+           THEME HANDLING (NO FLICKER)
+           =============================== */
+
+        const root = document.documentElement;
+        const app = document.getElementById("app");
+        const toggle = document.getElementById("themeToggle");
+        const label = document.getElementById("modeLabel");
+
+        function applyTheme(theme) {
+            app.style.opacity = "0.96";
+
+            requestAnimationFrame(() => {
+                root.setAttribute("data-theme", theme);
+                localStorage.setItem("theme", theme);
+
+                toggle.checked = theme === "light";
+                label.textContent = theme === "dark" ? "Dark mode" : "Light mode";
+
+                requestAnimationFrame(() => {
+                    app.style.opacity = "1";
+                });
+            });
+        }
+
+        toggle.addEventListener("change", () => {
+            applyTheme(toggle.checked ? "light" : "dark");
+        });
+
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        applyTheme(savedTheme);
+    </script>
+
+</body>
+
+</html>
