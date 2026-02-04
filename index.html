@@ -186,6 +186,14 @@
             font-size: 13px;
             color: var(--muted);
             border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header button {
+            font-size: 11px;
+            padding: 4px 10px;
         }
 
         textarea {
@@ -242,14 +250,17 @@
                     <span class="switch"></span>
                 </label>
 
-                <button onclick="clearOutput()">Clear</button>
+                <button onclick="clearOutput()">Clear Output</button>
                 <button class="primary" onclick="runCode()">Run ▶</button>
             </div>
         </header>
 
         <main>
             <div class="panel">
-                <div class="panel-header">Editor</div>
+                <div class="panel-header">
+                    Editor
+                    <button onclick="clearEditor()">Clear Editor</button>
+                </div>
                 <textarea id="code">
 // Example
 console.log("Hello World");
@@ -258,82 +269,105 @@ let x = 10;
 let y = 20;
 console.log("Sum:", x + y);
     </textarea>
-            </div>
+                </div>
 
-            <div class="panel">
-                <div class="panel-header">Output</div>
-                <div id="output"></div>
-            </div>
-        </main>
+                <div class="panel">
+                    <div class="panel-header">Output</div>
+                    <div id="output"></div>
+                </div>
+            </main>
 
-        <footer>
-            Powered by Browser JavaScript Engine
-        </footer>
+            <footer>
+                Powered by Browser JavaScript Engine
+            </footer>
 
-    </div>
+        </div>
 
-    <script>
-        /* ===============================
-           CODE EXECUTION
-           =============================== */
+        <script>
+            /* ===============================
+               CODE EXECUTION
+               =============================== */
 
-        function runCode() {
-            const code = document.getElementById("code").value;
-            const output = document.getElementById("output");
+            function runCode() {
+                const code = document.getElementById("code").value;
+                const output = document.getElementById("output");
 
-            output.textContent = "";
+                output.textContent = "";
 
-            const originalLog = console.log;
-            console.log = (...args) => {
-                output.textContent += args.join(" ") + "\n";
-            };
+                const originalLog = console.log;
+                console.log = (...args) => {
+                    output.textContent += args.join(" ") + "\n";
+                };
 
-            try {
-                new Function(code)();
-            } catch (err) {
-                output.innerHTML += `<span class="error">Error: ${err.message}</span>`;
+                try {
+                    new Function(code)();
+                } catch (err) {
+                    output.innerHTML += `<span class="error">Error: ${err.message}</span>`;
+                }
+
+                console.log = originalLog;
             }
 
-            console.log = originalLog;
-        }
+            function clearOutput() {
+                document.getElementById("output").textContent = "";
+            }
 
-        function clearOutput() {
-            document.getElementById("output").textContent = "";
-        }
+            function clearEditor() {
+                document.getElementById("code").value = "";
+                localStorage.removeItem("savedCode");
+            }
 
-        /* ===============================
-           THEME HANDLING (NO FLICKER)
-           =============================== */
+            function saveCode() {
+                const code = document.getElementById("code").value;
+                localStorage.setItem("savedCode", code);
+            }
 
-        const root = document.documentElement;
-        const app = document.getElementById("app");
-        const toggle = document.getElementById("themeToggle");
-        const label = document.getElementById("modeLabel");
+            function loadSavedCode() {
+                const savedCode = localStorage.getItem("savedCode");
+                if (savedCode) {
+                    document.getElementById("code").value = savedCode;
+                }
+            }
 
-        function applyTheme(theme) {
-            app.style.opacity = "0.96";
+            /* ===============================
+               THEME HANDLING (NO FLICKER)
+               =============================== */
 
-            requestAnimationFrame(() => {
-                root.setAttribute("data-theme", theme);
-                localStorage.setItem("theme", theme);
+            const root = document.documentElement;
+            const app = document.getElementById("app");
+            const toggle = document.getElementById("themeToggle");
+            const label = document.getElementById("modeLabel");
 
-                toggle.checked = theme === "light";
-                label.textContent = theme === "dark" ? "Dark mode" : "Light mode";
+            function applyTheme(theme) {
+                app.style.opacity = "0.96";
 
                 requestAnimationFrame(() => {
-                    app.style.opacity = "1";
+                    root.setAttribute("data-theme", theme);
+                    localStorage.setItem("theme", theme);
+
+                    toggle.checked = theme === "light";
+                    label.textContent = theme === "dark" ? "Dark mode" : "Light mode";
+
+                    requestAnimationFrame(() => {
+                        app.style.opacity = "1";
+                    });
                 });
+            }
+
+            toggle.addEventListener("change", () => {
+                applyTheme(toggle.checked ? "light" : "dark");
             });
-        }
 
-        toggle.addEventListener("change", () => {
-            applyTheme(toggle.checked ? "light" : "dark");
-        });
+            const savedTheme = localStorage.getItem("theme") || "dark";
+            applyTheme(savedTheme);
 
-        const savedTheme = localStorage.getItem("theme") || "dark";
-        applyTheme(savedTheme);
-    </script>
+            // Load saved code on page load
+            loadSavedCode();
 
-</body>
+            // Save code to localStorage on changes
+            document.getElementById("code").addEventListener("input", saveCode);
+        </script>
 
-</html>
+    </body>
+
+    </html>
