@@ -196,6 +196,12 @@
             padding: 4px 10px;
         }
 
+        .panel-header button.primary {
+            font-size: 12px;
+            padding: 6px 12px;
+            font-weight: 600;
+        }
+
         textarea {
             flex: 1;
             background: transparent;
@@ -218,6 +224,81 @@
 
         .error {
             color: var(--error);
+        }
+
+        /* ===============================
+       MODAL DIALOG
+       =============================== */
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .modal p {
+            margin: 0 0 20px 0;
+            font-size: 14px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal button {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .modal button.primary {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .modal button.primary:hover {
+            background: var(--error);
+            color: white;
         }
 
         /* ===============================
@@ -251,7 +332,6 @@
                 </label>
 
                 <button onclick="clearOutput()">Clear Output</button>
-                <button class="primary" onclick="runCode()">Run ▶</button>
             </div>
         </header>
 
@@ -259,7 +339,10 @@
             <div class="panel">
                 <div class="panel-header">
                     Editor
-                    <button onclick="clearEditor()">Clear Editor</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="clearEditor()">Clear Editor</button>
+                        <button class="primary" onclick="runCode()">Run ▶</button>
+                    </div>
                 </div>
                 <textarea id="code">
 // Example
@@ -281,6 +364,18 @@ console.log("Sum:", x + y);
                 Powered by Browser JavaScript Engine
             </footer>
 
+        </div>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="confirmModal" class="modal-overlay">
+            <div class="modal">
+                <h3>Clear Editor?</h3>
+                <p>Are you sure you want to clear the editor? This action cannot be undone and will also remove any saved code.</p>
+                <div class="modal-actions">
+                    <button onclick="closeConfirmModal()">Cancel</button>
+                    <button class="primary" onclick="confirmClearEditor()">Clear Editor</button>
+                </div>
+            </div>
         </div>
 
         <script>
@@ -313,8 +408,21 @@ console.log("Sum:", x + y);
             }
 
             function clearEditor() {
+                showConfirmModal();
+            }
+
+            function showConfirmModal() {
+                document.getElementById("confirmModal").classList.add("active");
+            }
+
+            function closeConfirmModal() {
+                document.getElementById("confirmModal").classList.remove("active");
+            }
+
+            function confirmClearEditor() {
                 document.getElementById("code").value = "";
                 localStorage.removeItem("savedCode");
+                closeConfirmModal();
             }
 
             function saveCode() {
