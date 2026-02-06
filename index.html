@@ -163,6 +163,34 @@
             background: var(--bg-dark);
         }
 
+        button.primary:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-ripple::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            transition: transform 0.3s ease-out;
+        }
+
+        .btn-ripple:active::before {
+            transform: translate(-50%, -50%) scale(2);
+            transition: transform 0s;
+        }
+
         /* ===============================
        MAIN
        =============================== */
@@ -341,7 +369,7 @@
                     Editor
                     <div style="display: flex; gap: 8px;">
                         <button onclick="clearEditor()">Clear Editor</button>
-                        <button class="primary" onclick="runCode()">Run ▶</button>
+                        <button class="primary btn-ripple" onclick="runCode()">Run ▶</button>
                     </div>
                 </div>
                 <textarea id="code">
@@ -401,17 +429,43 @@ console.log("Sum:", x + y);
                 }
 
                 console.log = originalLog;
+                updateClearOutputButton();
             }
 
             function clearOutput() {
                 document.getElementById("output").textContent = "";
+                updateClearOutputButton();
+            }
+
+            function updateClearOutputButton() {
+                const output = document.getElementById("output").textContent;
+                const clearOutputBtn = document.querySelector('button[onclick="clearOutput()"]');
+                if (clearOutputBtn) {
+                    const hasContent = output.trim().length > 0;
+                    clearOutputBtn.disabled = !hasContent;
+                    clearOutputBtn.style.opacity = hasContent ? '1' : '0.5';
+                    clearOutputBtn.style.cursor = hasContent ? 'pointer' : 'not-allowed';
+                }
             }
 
             function clearEditor() {
                 showConfirmModal();
             }
 
+            function updateClearEditorButton() {
+                const code = document.getElementById("code").value;
+                const clearEditorBtn = document.querySelector('button[onclick="clearEditor()"]');
+                if (clearEditorBtn) {
+                    const hasContent = code.trim().length > 0;
+                    clearEditorBtn.disabled = !hasContent;
+                    clearEditorBtn.style.opacity = hasContent ? '1' : '0.5';
+                    clearEditorBtn.style.cursor = hasContent ? 'pointer' : 'not-allowed';
+                }
+            }
+
             function showConfirmModal() {
+                const code = document.getElementById("code").value;
+                if (!code.trim()) return;
                 document.getElementById("confirmModal").classList.add("active");
             }
 
@@ -423,6 +477,7 @@ console.log("Sum:", x + y);
                 document.getElementById("code").value = "";
                 localStorage.removeItem("savedCode");
                 closeConfirmModal();
+                updateClearEditorButton();
             }
 
             function saveCode() {
@@ -472,8 +527,17 @@ console.log("Sum:", x + y);
             // Load saved code on page load
             loadSavedCode();
 
+            // Initialize Clear Output button state
+            updateClearOutputButton();
+
+            // Initialize Clear Editor button state after loading saved code
+            updateClearEditorButton();
+
             // Save code to localStorage on changes
             document.getElementById("code").addEventListener("input", saveCode);
+
+            // Update Clear Editor button on editor changes
+            document.getElementById("code").addEventListener("input", updateClearEditorButton);
         </script>
 
     </body>
