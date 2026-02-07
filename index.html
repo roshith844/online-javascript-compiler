@@ -11,7 +11,7 @@
        =============================== */
 
         :root[data-theme="dark"] {
-            --bg-dark: #0f172a;
+            --bg-dark: #020617;
             --bg-light: #020617;
             --panel: #020617;
             --border: #1e293b;
@@ -203,6 +203,21 @@
             background: var(--border);
         }
 
+        .container {
+            flex: 1;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--bg-dark);
+            padding: 12px;
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            display: flex;
+        }
+
+        .container>main {
+            flex: 1;
+        }
+
         .panel {
             background: var(--panel);
             display: flex;
@@ -363,30 +378,32 @@
             </div>
         </header>
 
-        <main>
-            <div class="panel">
-                <div class="panel-header">
-                    Editor
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="clearEditor()">Clear Editor</button>
-                        <button class="primary btn-ripple" onclick="runCode()">Run ▶</button>
+        <div class="container">
+            <main>
+                <div class="panel">
+                    <div class="panel-header">
+                        Editor
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="clearEditor()">Clear Editor</button>
+                            <button class="primary btn-ripple" onclick="runCode()">Run ▶</button>
+                        </div>
                     </div>
-                </div>
-                <textarea id="code">
+                    <textarea id="code">
 // Example
 console.log("Hello World");
 
 let x = 10;
 let y = 20;
 console.log("Sum:", x + y);
-    </textarea>
-                </div>
+        </textarea>
+                    </div>
 
-                <div class="panel">
-                    <div class="panel-header">Output</div>
-                    <div id="output"></div>
-                </div>
-            </main>
+                    <div class="panel">
+                        <div class="panel-header">Output</div>
+                        <div id="output"></div>
+                    </div>
+                </main>
+        </div>
 
             <footer>
                 Powered by Browser JavaScript Engine
